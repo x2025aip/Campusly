@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Campusly — a calmer way to keep your campus life together.">
-  <meta name="theme-color" content="#f7f7f4">
+  <meta name="theme-color" content="#f6f2e8">
   <title>Campusly — your campus, in sync</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,23 +12,29 @@
   <div class="app-shell">
     <aside class="sidebar" aria-label="Sidebar">
       <a class="brand" href="#home" aria-label="Campusly home">
-        <span class="brand-mark" aria-hidden="true">c</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" focusable="false">
+            <path d="m6.5 8.5 9.5-4 9.5 4v15l-9.5 4-9.5-4z"></path>
+            <path d="m6.5 12 9.5 4 9.5-4M16 16v11"></path>
+            <circle cx="16" cy="16" r="2.4"></circle>
+          </svg>
+        </span>
         <span>campusly<span class="brand-period">.</span></span>
       </a>
 
       <div class="workspace-label">YOUR CAMPUS</div>
       <nav class="side-nav" aria-label="Main navigation">
-        <a href="#home" class="nav-link" data-nav="home"><span class="nav-icon">⌂</span>Overview</a>
-        <a href="#schedule" class="nav-link" data-nav="schedule"><span class="nav-icon">▦</span>My schedule</a>
-        <a href="#assignments" class="nav-link" data-nav="assignments"><span class="nav-icon">☑</span>Assignments<span class="nav-count" id="nav-task-count">3</span></a>
-        <a href="#notes" class="nav-link" data-nav="notes"><span class="nav-icon">▤</span>Notes</a>
-        <a href="#study" class="nav-link" data-nav="study"><span class="nav-icon">✳</span>Study sets</a>
+        <a href="#home" class="nav-link" data-nav="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="m2 7 6-4 6 4v7H2zM5.5 14V9h5v5"></path></svg></span>Overview</a>
+        <a href="#schedule" class="nav-link" data-nav="schedule"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><rect x="2.2" y="3.5" width="11.6" height="10" rx="1.3"></rect><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3M5.5 9h.1M8 9h.1M10.5 9h.1M5.5 11.5h.1M8 11.5h.1"></path></svg></span>My schedule</a>
+        <a href="#assignments" class="nav-link" data-nav="assignments"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><rect x="2.5" y="2.5" width="11" height="11" rx="2"></rect><path d="m4.5 6 1 1 1.8-2M8.5 6.5h2.7M4.5 10l1 1 1.8-2M8.5 10.5h2.7"></path></svg></span>Assignments<span class="nav-count" id="nav-task-count">3</span></a>
+        <a href="#notes" class="nav-link" data-nav="notes"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="M3 2.5h7l3 3v8H3zM10 2.8v3h2.8M5.5 8h5M5.5 10.5h5"></path><path d="M1.5 5v8.5"></path></svg></span>Notes</a>
+        <a href="#study" class="nav-link" data-nav="study"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="M2 3.2c2.3-.8 4.4-.5 6 1v9.5c-1.6-1.5-3.7-1.8-6-1zM14 3.2c-2.3-.8-4.4-.5-6 1v9.5c1.6-1.5 3.7-1.8 6-1z"></path><path d="M4.2 6.2h1.6M10.2 6.2h1.6"></path></svg></span>Study sets</a>
       </nav>
 
       <div class="workspace-label community-label">CAMPUS LIFE</div>
       <nav class="side-nav" aria-label="Campus life">
-        <a href="#community" class="nav-link" data-nav="community"><span class="nav-icon">♡</span>Community<span class="online-dot"></span></a>
-        <a href="#careers" class="nav-link" data-nav="careers"><span class="nav-icon">↗</span>Career board</a>
+        <a href="#community" class="nav-link" data-nav="community"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><circle cx="6" cy="5.2" r="2.2"></circle><circle cx="11.5" cy="6.2" r="1.7"></circle><path d="M1.8 13c.3-2.2 1.8-3.5 4.2-3.5s4 1.3 4.2 3.5M10 9.5c2.2-.5 3.8.8 4.2 2.8"></path></svg></span>Community<span class="online-dot"></span></a>
+        <a href="#careers" class="nav-link" data-nav="careers"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="M2 13.5h12M3.5 11V8.5h2.4V11h2.4V6.2h2.4V9h2.1"></path><path d="m9.5 3 3.3-.2-.2 3.3"></path></svg></span>Career board</a>
       </nav>
 
       <div class="sidebar-bottom">
@@ -130,7 +136,19 @@
 
               <section class="panel event-card">
                 <div class="panel-heading compact-heading"><div><h2>On campus</h2><p>A little something to look forward to</p></div></div>
-                <div class="event-art" aria-hidden="true"><span>✿</span><span>♫</span><span>☼</span><div>FRI<br>20</div></div>
+                <div class="event-art" aria-hidden="true">
+                  <svg class="event-map" viewBox="0 0 170 120" focusable="false">
+                    <path class="map-path" d="M-5 94c27-4 29-34 60-33s34 22 58 16 28-32 64-34"></path>
+                    <path class="map-building map-building-one" d="M13 16h39v26H13z"></path>
+                    <path class="map-building map-building-two" d="M111 12h42v29h-42z"></path>
+                    <path class="map-building map-building-three" d="M110 82h42v25h-42z"></path>
+                    <path class="map-route" d="M31 58c13-13 22-12 33-5s14 21 29 21 20-16 31-23"></path>
+                    <circle class="map-stop" cx="31" cy="58" r="3"></circle>
+                    <circle class="map-stop" cx="93" cy="74" r="3"></circle>
+                    <circle class="map-stop" cx="124" cy="51" r="3"></circle>
+                  </svg>
+                  <div>FRI<br>20</div>
+                </div>
                 <div class="event-info"><span class="tag tag-peach">CAMPUS EVENT</span><h3>Friday Night Market</h3><p>Student Union · 6:00 PM</p><a href="#community" class="text-link">Find your people <span>↗</span></a></div>
               </section>
             </aside>
@@ -169,7 +187,7 @@
 
         <section id="careers" data-view hidden>
           <div class="page-heading"><div><p class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p><h1>Career board</h1><p class="welcome-subtitle">Opportunities picked for your psychology path.</p></div><span class="soft-badge">✦ PSYCHOLOGY · YEAR 2</span></div>
-          <div class="career-banner"><div><span>YOUR DEGREE, YOUR POSSIBILITIES</span><h2>Curious where psychology can take you?</h2><p>Explore internships and early-career roles that let you put your people skills to work.</p></div><div class="career-banner-art" aria-hidden="true">✳</div></div>
+          <div class="career-banner"><div><span>YOUR DEGREE, YOUR POSSIBILITIES</span><h2>Curious where psychology can take you?</h2><p>Explore internships and early-career roles that let you put your people skills to work.</p></div><svg class="career-banner-art" viewBox="0 0 220 160" aria-hidden="true" focusable="false"><path d="M12 126c35-4 32-48 73-49s44 34 71 24 27-48 55-55"></path><path d="M37 24h48v32H37zM137 10h52v35h-52zM139 105h42v30h-42z"></path><circle cx="85" cy="77" r="5"></circle><circle cx="156" cy="101" r="5"></circle><circle cx="116" cy="113" r="5"></circle></svg></div>
           <div class="career-toolbar"><div><h2>Opportunities for you</h2><p>Thoughtful first steps, not just job listings.</p></div><div class="filter-pills"><button type="button" class="career-filter active" data-career-filter="All">All roles</button><button type="button" class="career-filter" data-career-filter="Internship">Internships</button><button type="button" class="career-filter" data-career-filter="Part-time">Part-time</button></div></div>
           <div class="jobs-grid" id="jobs-grid"></div>
           <p class="career-disclaimer">Sample opportunities for this student project. Verify real roles, employers, and application details independently.</p>
