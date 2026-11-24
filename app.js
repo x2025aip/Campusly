@@ -22,12 +22,37 @@
     }
   };
 
-  let assignments = STORE.read("campusly-assignments", CAMPUS_DATA.assignments);
+  let assignments = STORE.read("campusly-assignments", CAMPUS_DATA.assignments).map(function (task) {
+    const demoTask = CAMPUS_DATA.assignments.find(function (demo) { return demo.id === task.id; });
+    return demoTask && !task.moodleUrl ? Object.assign({}, task, { moodleUrl: demoTask.moodleUrl }) : task;
+  });
   let notes = STORE.read("campusly-notes", CAMPUS_DATA.notes);
   let savedJobs = STORE.read("campusly-saved-jobs", []);
   let messages = CAMPUS_DATA.messages.slice();
-  let selectedSet = CAMPUS_DATA.studySets[0];
+  let studySets = STORE.read("campusly-study-sets", null);
+  if (!Array.isArray(studySets) || !studySets.length) studySets = JSON.parse(JSON.stringify(CAMPUS_DATA.studySets));
+  studySets = studySets.filter(function (set) {
+    return set && typeof set.id === "string" && typeof set.title === "string";
+  }).map(function (set) {
+    return {
+      id: set.id,
+      title: set.title,
+      course: typeof set.course === "string" ? set.course : "",
+      cards: Array.isArray(set.cards) ? set.cards.filter(function (card) {
+        return card && typeof card.term === "string" && typeof card.answer === "string";
+      }) : []
+    };
+  });
+  if (!studySets.length) studySets = JSON.parse(JSON.stringify(CAMPUS_DATA.studySets));
+  let selectedSet = studySets[0];
   let cardIndex = 0;
+  let editingNewSet = false;
+  let learnQueue = [];
+  let learnMissed = [];
+  let learnPosition = 0;
+  let testQuestions = [];
+  let testPosition = 0;
+  let testScore = 0;
   let activeFilter = "all";
   let activeCareerFilter = "All";
 
@@ -151,6 +176,14 @@
     name.append(make("strong", task.status === "done" ? "task-done" : "", task.title), make("span", "", task.course));
     const due = make("span", "task-due" + (task.status !== "done" && task.due <= "2026-11-20" ? " due-soon" : ""), task.status === "done" ? "Done" : "Due " + formatDate(task.due));
     row.append(checkbox, name, due);
+    if (task.status !== "done" && task.moodleUrl) {
+      const moodleLink = make("a", "moodle-link", compact ? "Moodle ↗" : "Open in Moodle ↗");
+      moodleLink.href = task.moodleUrl;
+      moodleLink.target = "_blank";
+      moodleLink.rel = "noopener";
+      moodleLink.setAttribute("aria-label", "Open " + task.title + " in Moodle");
+      row.append(moodleLink);
+    }
     return row;
   }
 
@@ -200,16 +233,235 @@
   }
 
   function updateStudyCard() {
-    const card = selectedSet.cards[cardIndex];
+    const cards = selectedSet.cards || [];
     byId("study-set-name").textContent = selectedSet.title;
-    byId("study-progress").textContent = "Card " + (cardIndex + 1) + " of " + selectedSet.cards.length + " · Click to reveal the answer";
-    byId("flashcard-count").textContent = String(cardIndex + 1).padStart(2, "0") + " / " + String(selectedSet.cards.length).padStart(2, "0");
+    byId("study-course-label").textContent = selectedSet.course || "MY STUDY SET";
+    byId("study-set-select").value = selectedSet.id;
+    byId("study-progress").textContent = cards.length
+      ? "Card " + (cardIndex + 1) + " of " + cards.length + " · Click to reveal the answer"
+      : "Add cards or import lecture notes to start studying.";
+    byId("flashcard-count").textContent = cards.length
+      ? String(cardIndex + 1).padStart(2, "0") + " / " + String(cards.length).padStart(2, "0")
+      : "00 / 00";
+    byId("previous-card").disabled = cards.length < 2;
+    byId("next-card").disabled = cards.length < 2;
+    byId("start-test").disabled = cards.length < 2;
+    document.querySelectorAll('[data-study-mode="learn"]').forEach(function (button) {
+      button.disabled = cards.length === 0;
+    });
+    document.querySelectorAll('[data-study-mode="test"]').forEach(function (button) {
+      button.disabled = cards.length < 2;
+    });
+    byId("delete-study-set").disabled = studySets.length < 2;
+    byId("delete-study-set").title = studySets.length < 2
+      ? "Keep at least one study set"
+      : "Delete this study set";
+    if (!cards.length) {
+      byId("flashcard-word").textContent = "Your set is ready";
+      byId("flashcard-answer").textContent = "Add a term and definition, or import notes from a text lecture.";
+      byId("flashcard-answer").hidden = false;
+      byId("flashcard-word").hidden = true;
+      byId("flashcard").classList.add("is-flipped");
+      byId("flashcard").setAttribute("aria-label", "Your set is empty");
+      return;
+    }
+    if (cardIndex >= cards.length) cardIndex = 0;
+    const card = cards[cardIndex];
     byId("flashcard-word").textContent = card.term;
     byId("flashcard-answer").textContent = card.answer;
     byId("flashcard-answer").hidden = true;
     byId("flashcard-word").hidden = false;
     byId("flashcard").classList.remove("is-flipped");
+    byId("flashcard").setAttribute("aria-label", "Reveal answer for " + card.term);
     byId("flashcard-category").textContent = "KEY CONCEPT";
+  }
+
+  function persistStudySets() {
+    return STORE.write("campusly-study-sets", studySets);
+  }
+
+  function setStudyMode(mode) {
+    byId("study-editor").hidden = true;
+    document.querySelectorAll(".study-mode-panel").forEach(function (panel) {
+      panel.hidden = panel.id !== "study-" + mode + "-mode";
+    });
+    document.querySelectorAll("[data-study-mode]").forEach(function (button) {
+      const active = button.dataset.studyMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.disabled = false;
+    });
+    if (mode === "learn" && selectedSet.cards.length) startLearnSession();
+  }
+
+  function startLearnSession(cards) {
+    learnQueue = (cards || selectedSet.cards).slice();
+    learnMissed = [];
+    learnPosition = 0;
+    renderLearnCard();
+  }
+
+  function renderLearnCard() {
+    const prompt = byId("learn-prompt");
+    const answer = byId("learn-answer");
+    const rating = byId("learn-rating");
+    byId("learn-review-missed").hidden = true;
+    if (learnPosition >= learnQueue.length) {
+      prompt.textContent = "Session complete";
+      byId("learn-count").textContent = "LEARN · FINISHED";
+      byId("learn-result").textContent = learnMissed.length
+        ? "You marked " + learnMissed.length + " card" + (learnMissed.length === 1 ? "" : "s") + " to revisit."
+        : "You marked every card as known. Nicely done!";
+      answer.hidden = true;
+      byId("learn-reveal").hidden = true;
+      rating.hidden = true;
+      byId("learn-review-missed").hidden = learnMissed.length === 0;
+      return;
+    }
+    const card = learnQueue[learnPosition];
+    prompt.textContent = card.term;
+    answer.textContent = card.answer;
+    answer.hidden = true;
+    byId("learn-count").textContent = "LEARN · " + (learnPosition + 1) + " OF " + learnQueue.length;
+    byId("learn-result").textContent = "";
+    byId("learn-reveal").hidden = false;
+    rating.hidden = true;
+  }
+
+  function renderStudyEditorCards(cards) {
+    const list = byId("study-edit-cards");
+    list.replaceChildren();
+    cards.forEach(function (card) {
+      const row = make("div", "study-edit-card");
+      const termLabel = make("label", "", "Term or question");
+      const term = make("input");
+      term.type = "text";
+      term.maxLength = 120;
+      term.required = true;
+      term.value = card.term || "";
+      termLabel.append(term);
+      const answerLabel = make("label", "", "Definition or answer");
+      const answer = make("textarea");
+      answer.rows = 3;
+      answer.maxLength = 1000;
+      answer.required = true;
+      answer.value = card.answer || "";
+      answerLabel.append(answer);
+      const remove = make("button", "button button-light", "Remove card");
+      remove.type = "button";
+      remove.addEventListener("click", function () {
+        row.remove();
+        if (!list.children.length) list.append(make("p", "study-editor-empty", "No cards yet — add one to this set."));
+      });
+      row.append(termLabel, answerLabel, remove);
+      list.append(row);
+    });
+    if (!cards.length) list.append(make("p", "study-editor-empty", "No cards yet — add one to this set."));
+  }
+
+  function openStudyEditor(isNew) {
+    editingNewSet = isNew;
+    byId("study-editor-heading").textContent = isNew ? "Create a study set" : "Edit study set";
+    byId("study-edit-title").value = selectedSet.title;
+    byId("study-edit-course").value = selectedSet.course || "";
+    byId("study-editor-message").textContent = "";
+    renderStudyEditorCards(selectedSet.cards || []);
+    document.querySelectorAll(".study-mode-panel").forEach(function (panel) { panel.hidden = true; });
+    document.querySelectorAll("[data-study-mode]").forEach(function (button) { button.disabled = true; });
+    byId("study-editor").hidden = false;
+    byId("study-edit-title").focus();
+  }
+
+  function makeTest() {
+    const cards = selectedSet.cards || [];
+    testQuestions = cards.map(function (card) {
+      const distractors = cards.filter(function (candidate) {
+        return candidate !== card && candidate.answer !== card.answer;
+      }).map(function (candidate) { return candidate.answer; });
+      const choices = distractors.sort(function () { return Math.random() - 0.5; }).slice(0, 3);
+      choices.push(card.answer);
+      choices.sort(function () { return Math.random() - 0.5; });
+      return { term: card.term, answer: card.answer, choices: choices };
+    }).sort(function () { return Math.random() - 0.5; }).slice(0, 10);
+    testPosition = 0;
+    testScore = 0;
+    renderTestQuestion();
+  }
+
+  function renderTestQuestion() {
+    const choices = byId("test-choices");
+    choices.replaceChildren();
+    byId("test-feedback").textContent = "";
+    byId("test-next").hidden = true;
+    byId("test-restart").hidden = true;
+    if (testPosition >= testQuestions.length) {
+      byId("test-progress").textContent = "TEST COMPLETE";
+      byId("test-question").textContent = "You scored " + testScore + " out of " + testQuestions.length + ".";
+      byId("test-feedback").textContent = "Use your missed answers as a guide for what to review next.";
+      byId("test-restart").hidden = false;
+      return;
+    }
+    const question = testQuestions[testPosition];
+    byId("test-progress").textContent = "QUESTION " + (testPosition + 1) + " OF " + testQuestions.length;
+    byId("test-question").textContent = "What best describes “" + question.term + "”?";
+    question.choices.forEach(function (choice) {
+      const button = make("button", "test-choice", choice);
+      button.type = "button";
+      button.addEventListener("click", function () {
+        const correct = choice === question.answer;
+        if (correct) testScore += 1;
+        Array.from(choices.children).forEach(function (option) {
+          option.disabled = true;
+          if (option.textContent === question.answer) option.classList.add("is-correct");
+          else if (option === button) option.classList.add("is-incorrect");
+        });
+        byId("test-feedback").textContent = correct ? "That's right!" : "Not quite. The answer is: " + question.answer;
+        byId("test-next").textContent = testPosition === testQuestions.length - 1 ? "See results →" : "Next question →";
+        byId("test-next").hidden = false;
+      });
+      choices.append(button);
+    });
+  }
+
+  function extractLectureCards(text) {
+    const lines = text.split(/\r?\n/);
+    const cards = [];
+    const csvLike = lines.filter(function (line) { return line.trim() && line.includes(","); });
+    if (csvLike.length >= 1 && csvLike.every(function (line) { return line.split(",").length >= 2; })) {
+      csvLike.forEach(function (line) {
+        const parts = line.match(/("([^"]|"")*"|[^,]*)(?:,|$)/g);
+        if (!parts) return;
+        const values = parts.map(function (part) {
+          return part.replace(/,$/, "").trim().replace(/^"|"$/g, "").replace(/""/g, '"');
+        });
+        const term = values[0];
+        const answer = values.slice(1).join(", ").trim();
+        if (/^term$/i.test(term) && /^definition|answer$/i.test(answer)) return;
+        if (term && answer.length >= 2) cards.push({ term: term, answer: answer });
+      });
+      if (cards.length) return cards;
+    }
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index].trim().replace(/^[-*]\s+/, "");
+      if (!line) continue;
+      const heading = line.match(/^#{1,6}\s+(.+)$/);
+      if (heading) {
+        const details = [];
+        for (let next = index + 1; next < lines.length; next += 1) {
+          const detail = lines[next].trim().replace(/^[-*]\s+/, "");
+          if (!detail) continue;
+          if (/^#{1,6}\s+/.test(detail)) break;
+          if (/^.{2,100}\s*(?::|[–—\t])\s*.{10,}$/.test(detail)) break;
+          details.push(detail);
+          index = next;
+        }
+        if (details.length) cards.push({ term: heading[1].trim(), answer: details.join(" ") });
+        continue;
+      }
+      const definition = line.match(/^([^:–—\t]{2,100})\s*(?::|[–—\t])\s*(.{10,})$/);
+      if (definition) cards.push({ term: definition[1].trim(), answer: definition[2].trim() });
+    }
+    return cards;
   }
 
   function renderPeople() {
@@ -372,7 +624,8 @@
       course: "Personal",
       due: byId("new-task-date").value,
       status: "open",
-      color: "blue"
+      color: "blue",
+      moodleUrl: byId("new-task-moodle").value.trim()
     });
     STORE.write("campusly-assignments", assignments);
     byId("task-form").reset();
@@ -405,17 +658,104 @@
     renderNotes();
   });
 
-  CAMPUS_DATA.studySets.forEach(function (set) {
-    const option = make("option", "", set.title);
-    option.value = set.id;
-    byId("study-set-select").append(option);
-  });
+  function renderStudySetOptions() {
+    const select = byId("study-set-select");
+    select.replaceChildren();
+    studySets.forEach(function (set) {
+      const option = make("option", "", set.title);
+      option.value = set.id;
+      select.append(option);
+    });
+    select.value = selectedSet.id;
+  }
+
+  renderStudySetOptions();
+  updateStudyCard();
   byId("study-set-select").addEventListener("change", function () {
-    selectedSet = CAMPUS_DATA.studySets.find(function (set) { return set.id === byId("study-set-select").value; });
+    selectedSet = studySets.find(function (set) { return set.id === byId("study-set-select").value; });
     cardIndex = 0;
+    setStudyMode("cards");
     updateStudyCard();
   });
+  byId("new-study-set").addEventListener("click", function () {
+    selectedSet = { id: "custom-" + Date.now(), title: "Untitled set", course: "", cards: [] };
+    studySets.push(selectedSet);
+    renderStudySetOptions();
+    openStudyEditor(true);
+  });
+  byId("edit-study-set").addEventListener("click", function () { openStudyEditor(false); });
+  byId("add-study-card").addEventListener("click", function () {
+    const cards = Array.from(byId("study-edit-cards").querySelectorAll(".study-edit-card")).map(function (row) {
+      return { term: row.querySelector("input").value, answer: row.querySelector("textarea").value };
+    });
+    cards.push({ term: "", answer: "" });
+    renderStudyEditorCards(cards);
+  });
+  byId("study-editor").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const cards = Array.from(byId("study-edit-cards").querySelectorAll(".study-edit-card")).map(function (row) {
+      return { term: row.querySelector("input").value.trim(), answer: row.querySelector("textarea").value.trim() };
+    });
+    if (!cards.length || cards.some(function (card) { return !card.term || !card.answer; })) {
+      byId("study-editor-message").textContent = "Add at least one complete card. Each card needs a term and an answer.";
+      return;
+    }
+    const index = studySets.findIndex(function (set) { return set.id === selectedSet.id; });
+    const previous = studySets[index];
+    const updated = {
+      id: selectedSet.id,
+      title: byId("study-edit-title").value.trim(),
+      course: byId("study-edit-course").value.trim(),
+      cards: cards
+    };
+    studySets[index] = updated;
+    if (!persistStudySets()) {
+      studySets[index] = previous;
+      byId("study-editor-message").textContent = "Could not save this set in browser storage. Free up space or check your browser settings, then try again.";
+      return;
+    }
+    selectedSet = updated;
+    cardIndex = 0;
+    editingNewSet = false;
+    renderStudySetOptions();
+    byId("study-editor").hidden = true;
+    document.querySelectorAll("[data-study-mode]").forEach(function (button) { button.disabled = false; });
+    setStudyMode("cards");
+    updateStudyCard();
+  });
+  byId("cancel-study-edit").addEventListener("click", function () {
+    if (editingNewSet) {
+      studySets = studySets.filter(function (set) { return set.id !== selectedSet.id; });
+      selectedSet = studySets[0];
+      renderStudySetOptions();
+      updateStudyCard();
+    }
+    editingNewSet = false;
+    byId("study-editor").hidden = true;
+    document.querySelectorAll("[data-study-mode]").forEach(function (button) { button.disabled = false; });
+    setStudyMode("cards");
+  });
+  byId("delete-study-set").addEventListener("click", function () {
+    if (studySets.length < 2) return;
+    if (!window.confirm('Delete "' + selectedSet.title + '"?')) return;
+    const previousSets = studySets.slice();
+    studySets = studySets.filter(function (set) { return set.id !== selectedSet.id; });
+    if (!persistStudySets()) {
+      studySets = previousSets;
+      window.alert("Could not delete this set. Check your browser storage settings and try again.");
+      return;
+    }
+    selectedSet = studySets[0];
+    cardIndex = 0;
+    renderStudySetOptions();
+    setStudyMode("cards");
+    updateStudyCard();
+  });
+  document.querySelectorAll("[data-study-mode]").forEach(function (button) {
+    button.addEventListener("click", function () { setStudyMode(button.dataset.studyMode); });
+  });
   byId("flashcard").addEventListener("click", function () {
+    if (!selectedSet.cards.length) return;
     const answer = byId("flashcard-answer");
     const word = byId("flashcard-word");
     const reveal = answer.hidden;
@@ -425,11 +765,85 @@
     byId("flashcard-category").textContent = reveal ? "TAKE A MOMENT TO REMEMBER" : "KEY CONCEPT";
   });
   byId("previous-card").addEventListener("click", function () {
+    if (!selectedSet.cards.length) return;
     cardIndex = (cardIndex - 1 + selectedSet.cards.length) % selectedSet.cards.length;
     updateStudyCard();
   });
   byId("next-card").addEventListener("click", function () {
+    if (!selectedSet.cards.length) return;
     cardIndex = (cardIndex + 1) % selectedSet.cards.length;
+    updateStudyCard();
+  });
+  byId("learn-reveal").addEventListener("click", function () {
+    byId("learn-answer").hidden = false;
+    byId("learn-rating").hidden = false;
+    byId("learn-reveal").hidden = true;
+  });
+  byId("learn-rating").addEventListener("click", function (event) {
+    const rating = event.target.closest("[data-learn-rating]");
+    if (!rating || learnPosition >= learnQueue.length) return;
+    if (rating.dataset.learnRating === "again") learnMissed.push(learnQueue[learnPosition]);
+    learnPosition += 1;
+    renderLearnCard();
+  });
+  byId("learn-review-missed").addEventListener("click", function () {
+    startLearnSession(learnMissed);
+  });
+  byId("start-test").addEventListener("click", makeTest);
+  byId("test-next").addEventListener("click", function () {
+    testPosition += 1;
+    renderTestQuestion();
+  });
+  byId("test-restart").addEventListener("click", makeTest);
+  byId("lecture-file").addEventListener("change", function () {
+    const file = byId("lecture-file").files[0];
+    if (!file) return;
+    if (file.size > 200000) {
+      byId("lecture-import-message").textContent = "That file is over 200 KB. Paste a shorter excerpt (up to 20,000 characters) instead.";
+      byId("lecture-file").value = "";
+      return;
+    }
+    file.text().then(function (text) {
+      byId("lecture-text").value = text.slice(0, 20000);
+      byId("lecture-import-message").textContent = "Loaded " + file.name + ". Review the text, then create cards.";
+    }).catch(function (error) {
+      console.warn("Campusly couldn't read the lecture file.", error);
+      byId("lecture-import-message").textContent = "Could not read that file. Try a plain .txt or .md file, or paste your notes.";
+    });
+  });
+  byId("lecture-import-form").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    let text = byId("lecture-text").value.trim();
+    const file = byId("lecture-file").files[0];
+    if (!text && file) {
+      if (file.size > 200000) {
+        byId("lecture-import-message").textContent = "That file is over 200 KB. Paste a shorter excerpt (up to 20,000 characters) instead.";
+        return;
+      }
+      try {
+        text = (await file.text()).slice(0, 20000);
+      } catch (error) {
+        console.warn("Campusly couldn't read the lecture file.", error);
+        byId("lecture-import-message").textContent = "Could not read that file. Try a plain .txt or .md file, or paste your notes.";
+        return;
+      }
+    }
+    const cards = extractLectureCards(text);
+    if (!cards.length) {
+      byId("lecture-import-message").textContent = "No card-ready lines found. Try “Term: definition” or a Markdown heading followed by its explanation.";
+      return;
+    }
+    const previousCards = selectedSet.cards.slice();
+    selectedSet.cards = previousCards.concat(cards);
+    if (!persistStudySets()) {
+      selectedSet.cards = previousCards;
+      byId("lecture-import-message").textContent = "Cards were not saved. Free up browser storage or check your browser settings, then try again.";
+      return;
+    }
+    byId("lecture-import-message").textContent = "Added " + cards.length + " card" + (cards.length === 1 ? "" : "s") + " to “" + selectedSet.title + "”.";
+    byId("lecture-text").value = "";
+    byId("lecture-file").value = "";
+    cardIndex = 0;
     updateStudyCard();
   });
 

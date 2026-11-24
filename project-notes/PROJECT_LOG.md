@@ -10,6 +10,18 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 
 ## Work sessions
 
+### Session 3 — 2026-11-23 — driver: Copilot
+
+- **Goal for this session:** Make study sets customizable and add more ways to practice, including lecture import.
+- **Changes:** Added persistent set editing and card management, active-recall Learn sessions with self-rating and missed-card review, multiple-choice practice tests, and import from pasted notes or `.txt`/`.md` files.
+- **Prototype note:** Lecture import is local text parsing for `Term: definition` lines and Markdown headings with explanations; it is not AI-generated, does not upload files, and does not support slide/PDF extraction.
+
+### Session 2 — 2026-11-23 — driver: Copilot
+
+- **Goal for this session:** Add direct Moodle links to assignments that are still due.
+- **Changes:** Added Moodle URLs to the demo assignment data, added a Moodle action to open-assignment rows on both the overview and full assignments page, and added an optional Moodle URL field when creating a new assignment.
+- **Prototype note:** Demo Moodle URLs are placeholder links for the mockup; a real integration would use the student's verified course and assignment links.
+
 ### Session 1 — 2026-11-19 — driver: Carley Powers
 
 - **Goal for this session:** Build and refine Campusly, a student-focused campus organizer, and capture the product and business decisions made today.
@@ -38,6 +50,9 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 | Date | What went wrong | What we tried | What finally fixed it |
 |---|---|---|---|
 | 2026-11-19 | Asked whether the public website could be made impossible to copy. | Reviewed the prototype's visual system and discussed the limits of client-side code. | Made the visual identity more distinctive; noted that this does not prevent copying. |
+| 2026-11-23 | Existing browser-saved assignments could be missing Moodle links. | Added Moodle URLs to the demo data and renderer. | Existing saved assignments now receive a matching demo link when it is missing. |
+| 2026-11-23 | The Moodle URLs in the prototype are placeholders, not real course assignments. | Added an optional Moodle URL field for new assignments. | The prototype can store demo or user-entered links; real Moodle integration still needs course data and authorization. |
+| 2026-11-23 | No permanent public website link was confirmed. | Started and checked a local preview server. | A temporary local link is available at `http://localhost:8000/`; GitHub Pages must still be configured for a permanent public link. |
 
 ## What a real version would need
 
@@ -45,6 +60,7 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 |---|---|---|
 | Student accounts and a secure shared database | Let students access their schedules and notes across devices and control who can see them. | Medium to high; requires backend development, security work, and ongoing operations. |
 | Real campus events and job listings | Keep opportunities accurate and give students a reason to return. | Medium; requires campus/employer partnerships and a verification process. |
+| AI-assisted lecture and slide import | Turn varied lecture materials into accurate study resources while protecting student data. | Medium to high; requires model integration, file processing, privacy safeguards, and quality checks. |
 | Real messaging and moderation | Support safe communication between students, faculty, and employers. | High; requires privacy decisions, reporting tools, moderation, and staff or services. |
 | University pilot, licensing, and payments | Test whether a campus will pay and handle a real commercial relationship. | Medium; requires a pilot agreement, support, and payment or invoicing operations. |
 | Privacy, accessibility, and support processes | Protect student information and make the service usable and dependable. | Ongoing; requires policy, testing, maintenance, and support capacity. |

@@ -7,9 +7,9 @@ const CAMPUS_DATA = {
     { time: "2:00", period: "PM", end: "3:00 PM", title: "Study group: midterm prep", detail: "Library · Quiet study room", type: "study", color: "blue" }
   ],
   assignments: [
-    { id: 1, title: "Research reflection", course: "Research Methods", due: "2026-11-20", status: "open", color: "peach" },
-    { id: 2, title: "Read chapters 6 & 7", course: "Developmental Psychology", due: "2026-11-21", status: "open", color: "lilac" },
-    { id: 3, title: "Discussion post: motivation", course: "Social Psychology", due: "2026-11-22", status: "open", color: "mint" },
+    { id: 1, title: "Research reflection", course: "Research Methods", due: "2026-11-20", status: "open", color: "peach", moodleUrl: "https://moodle.stfx.ca/mod/assign/view.php?id=1001" },
+    { id: 2, title: "Read chapters 6 & 7", course: "Developmental Psychology", due: "2026-11-21", status: "open", color: "lilac", moodleUrl: "https://moodle.stfx.ca/mod/assign/view.php?id=1002" },
+    { id: 3, title: "Discussion post: motivation", course: "Social Psychology", due: "2026-11-22", status: "open", color: "mint", moodleUrl: "https://moodle.stfx.ca/mod/assign/view.php?id=1003" },
     { id: 4, title: "Lecture notes — cognition", course: "Cognitive Psychology", due: "2026-11-18", status: "done", color: "blue" },
     { id: 5, title: "Review study guide", course: "Research Methods", due: "2026-11-17", status: "done", color: "peach" }
   ],
