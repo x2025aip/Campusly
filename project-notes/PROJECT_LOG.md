@@ -4,16 +4,24 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 
 **Team name:** Carley Powers
 **Startup name:** Campusly
-**Live site link:** No permanent public link confirmed. A local preview was used during this work.
+**Live site link:** https://supreme-space-umbrella-wv4rw6qw4p5qc57p-8000.app.github.dev/
 
 ---
 
 ## Work sessions
 
+### Session 4 — 2026-11-26 — driver: Copilot
+
+- **Goal for this session:** Give the website a more distinctive color palette while keeping it pastel and calming.
+- **Changes:** Updated the site palette to use lavender-tinted backgrounds, dusty indigo accents, sea-glass greens, and soft terracotta; matched the browser theme color to the new background.
+- **What worked:** `git diff --check` passed. Started the local preview at `http://localhost:8000/` and confirmed it responds successfully.
+- **Prototype note:** The preview is local and is not a permanent public website link.
+
 ### Session 3 — 2026-11-23 — driver: Copilot
 
-- **Goal for this session:** Make study sets customizable and add more ways to practice, including lecture import.
+- **Goal for this session:** Make study sets more creative and customizable by adding new ways to practice and import lecture materials.
 - **Changes:** Added persistent set editing and card management, active-recall Learn sessions with self-rating and missed-card review, multiple-choice practice tests, and import from pasted notes or `.txt`/`.md` files.
+- **What went wrong:** File import is limited to plain text and Markdown; it does not extract content from PDFs or slides, and imported material is not automatically turned into study resources with AI.
 - **Prototype note:** Lecture import is local text parsing for `Term: definition` lines and Markdown headings with explanations; it is not AI-generated, does not upload files, and does not support slide/PDF extraction.
 
 ### Session 2 — 2026-11-23 — driver: Copilot

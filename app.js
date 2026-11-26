@@ -374,6 +374,9 @@
 
   function makeTest() {
     const cards = selectedSet.cards || [];
+    const questionLimit = byId("test-question-count").value === "all"
+      ? cards.length
+      : Number(byId("test-question-count").value);
     testQuestions = cards.map(function (card) {
       const distractors = cards.filter(function (candidate) {
         return candidate !== card && candidate.answer !== card.answer;
@@ -382,7 +385,7 @@
       choices.push(card.answer);
       choices.sort(function () { return Math.random() - 0.5; });
       return { term: card.term, answer: card.answer, choices: choices };
-    }).sort(function () { return Math.random() - 0.5; }).slice(0, 10);
+    }).sort(function () { return Math.random() - 0.5; }).slice(0, questionLimit);
     testPosition = 0;
     testScore = 0;
     renderTestQuestion();
@@ -669,6 +672,10 @@
     select.value = selectedSet.id;
   }
 
+  function updateImportTarget() {
+    byId("lecture-new-set-fields").hidden = byId("lecture-import-target").value !== "new";
+  }
+
   renderStudySetOptions();
   updateStudyCard();
   byId("study-set-select").addEventListener("change", function () {
@@ -795,6 +802,7 @@
     renderTestQuestion();
   });
   byId("test-restart").addEventListener("click", makeTest);
+  byId("lecture-import-target").addEventListener("change", updateImportTarget);
   byId("lecture-file").addEventListener("change", function () {
     const file = byId("lecture-file").files[0];
     if (!file) return;
@@ -833,16 +841,38 @@
       byId("lecture-import-message").textContent = "No card-ready lines found. Try “Term: definition” or a Markdown heading followed by its explanation.";
       return;
     }
+    const previousSet = selectedSet;
+    const previousSets = studySets.slice();
     const previousCards = selectedSet.cards.slice();
-    selectedSet.cards = previousCards.concat(cards);
+    const createNewSet = byId("lecture-import-target").value === "new";
+    if (createNewSet) {
+      let id = "imported-" + Date.now();
+      while (studySets.some(function (set) { return set.id === id; })) id += "-1";
+      const fileName = file ? file.name.replace(/\.[^.]+$/, "") : "";
+      selectedSet = {
+        id: id,
+        title: byId("lecture-import-title").value.trim() || fileName || "Imported study set",
+        course: byId("lecture-import-course").value.trim(),
+        cards: cards
+      };
+      studySets = studySets.concat(selectedSet);
+    } else {
+      selectedSet.cards = selectedSet.cards.concat(cards);
+    }
     if (!persistStudySets()) {
-      selectedSet.cards = previousCards;
+      studySets = previousSets;
+      if (!createNewSet) previousSet.cards = previousCards;
+      selectedSet = previousSet;
+      renderStudySetOptions();
       byId("lecture-import-message").textContent = "Cards were not saved. Free up browser storage or check your browser settings, then try again.";
       return;
     }
+    renderStudySetOptions();
     byId("lecture-import-message").textContent = "Added " + cards.length + " card" + (cards.length === 1 ? "" : "s") + " to “" + selectedSet.title + "”.";
     byId("lecture-text").value = "";
     byId("lecture-file").value = "";
+    byId("lecture-import-title").value = "";
+    byId("lecture-import-course").value = "";
     cardIndex = 0;
     updateStudyCard();
   });
