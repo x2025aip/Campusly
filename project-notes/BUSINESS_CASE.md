@@ -8,13 +8,13 @@
 
 **Problem:** I think students have to coordinate their academic and campus lives across separate calendars, task lists, note apps, group chats, event pages, and job boards. That can make deadlines and useful opportunities harder to keep track of. This is a problem hypothesis, not a result from customer interviews yet.
 
-**Solution:** Campusly puts a weekly schedule, assignments, notes, study cards, campus community, events, and degree-related opportunities in one responsive site. The prototype uses fictional people, messages, courses, and jobs. Tasks and notes can be saved in the browser; it does not yet connect students to real campus services. Today's design update gave it a campus field-guide identity: a custom map-inspired mark and navigation icons, original map illustrations, a green-and-copper palette, and a distinct display font. These choices help the product feel recognizable, but do not stop someone from copying public website code.
+**Solution:** Campusly puts a weekly schedule, assignments, notes, study sets, campus community, events, and degree-related opportunities in one responsive site. Students can edit and save study sets, use flashcards or active-recall Learn mode, take multiple-choice practice tests, and create cards by pasting text or importing `.txt`, `.md`, or `.csv` files. Import uses basic browser-side parsing (up to 200 KB per file and 20,000 characters); it does not extract PDFs or slides, generate cards with AI, or upload files. The prototype uses fictional people, messages, courses, and jobs; tasks, notes, and study sets are saved in the browser, and it does not yet connect students to real campus services. Its campus field-guide identity includes a custom map-inspired mark and navigation icons, original map illustrations, a calming pastel palette of lavender, dusty indigo, sea-glass green, and soft terracotta, and a distinct display font. These choices help the product feel recognizable, but do not stop someone from copying public website code.
 
 **Revenue:** The prototype currently earns nothing and has no payment system. A possible first model is a university-paid pilot or license, with pricing tested through conversations with student-success staff. Paid employer listings could be a later option if Campusly has an active student audience. I would not rely on advertising or selling student data.
 
 ## 2. Where IT creates value
 
-Campusly's main value-chain change is putting information students currently manage in separate places into one digital workflow. Search, deadline cues, saved tasks, and study cards could reduce the effort of switching between tools. A web product could also scale to more campuses at a lower marginal cost than providing the same coordination manually.
+Campusly's main value-chain change is putting information students currently manage in separate places into one digital workflow. Search, deadline cues, saved tasks, flashcards, practice tests, and study-material import could reduce the effort of switching between tools. A web product could also scale to more campuses at a lower marginal cost than providing the same coordination manually.
 
 Relevant course concepts include **scale**, **distribution channels**, and **differentiation**. A university partnership could provide a trusted distribution channel; the student-focused combination of academic planning and campus life could differentiate the product. Saved information may create **switching costs**, but those should not become an excuse to trap users: a real service should let students export or delete their data.
 
@@ -36,7 +36,7 @@ What could grow stronger over time is a trusted campus brand, useful opt-in rela
 
 ## 5. Cloud and operations
 
-The current prototype is a static HTML, CSS, and JavaScript site. It uses browser storage for some changes and fictional data for its people, messages, and opportunities. It has no real accounts, shared database, server-side messaging, or payments.
+The current prototype is a static HTML, CSS, and JavaScript site, available through a temporary forwarded preview rather than a permanent public deployment. It uses browser storage for some changes and fictional data for its people, messages, and opportunities. It has no real accounts, shared database, server-side messaging, or payments.
 
 A real product could start with managed static hosting and a **PaaS** backend for accounts, a database, and APIs; it could buy mature identity or email capabilities as **SaaS** rather than building them from scratch. **IaaS** is probably unnecessary at the pilot stage. The main operational risks would be service outages, provider dependence, cost changes, and protecting student information across services.
 

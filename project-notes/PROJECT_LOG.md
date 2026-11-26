@@ -4,7 +4,7 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 
 **Team name:** Carley Powers
 **Startup name:** Campusly
-**Live site link:** https://supreme-space-umbrella-wv4rw6qw4p5qc57p-8000.app.github.dev/
+**Temporary preview link (not a permanent public site):** https://supreme-space-umbrella-wv4rw6qw4p5qc57p-8000.app.github.dev/
 
 ---
 
@@ -14,15 +14,15 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 
 - **Goal for this session:** Give the website a more distinctive color palette while keeping it pastel and calming.
 - **Changes:** Updated the site palette to use lavender-tinted backgrounds, dusty indigo accents, sea-glass greens, and soft terracotta; matched the browser theme color to the new background.
-- **What worked:** `git diff --check` passed. Started the local preview at `http://localhost:8000/` and confirmed it responds successfully.
-- **Prototype note:** The preview is local and is not a permanent public website link.
+- **What worked:** `git diff --check` passed. Started the local preview at `http://localhost:8000/`, confirmed it responds successfully, and opened it through the temporary forwarded preview link above.
+- **Prototype note:** The forwarded preview is temporary; a permanent public website deployment has not been confirmed.
 
 ### Session 3 — 2026-11-23 — driver: Copilot
 
 - **Goal for this session:** Make study sets more creative and customizable by adding new ways to practice and import lecture materials.
-- **Changes:** Added persistent set editing and card management, active-recall Learn sessions with self-rating and missed-card review, multiple-choice practice tests, and import from pasted notes or `.txt`/`.md` files.
-- **What went wrong:** File import is limited to plain text and Markdown; it does not extract content from PDFs or slides, and imported material is not automatically turned into study resources with AI.
-- **Prototype note:** Lecture import is local text parsing for `Term: definition` lines and Markdown headings with explanations; it is not AI-generated, does not upload files, and does not support slide/PDF extraction.
+- **Changes:** Added persistent study-set editing and card management, active-recall Learn sessions with self-rating and missed-card review, multiple-choice practice tests with 5, 10, or all cards, and import from pasted notes or `.txt`, `.md`, and `.csv` files into the current or a new set.
+- **What went wrong:** Import is limited to text-based content (up to 200 KB per file and 20,000 characters); it does not extract content from PDFs or slides, and imported material is not automatically turned into study resources with AI.
+- **Prototype note:** Lecture import is local text parsing for `Term: definition` lines, Markdown headings with explanations, or comma-separated term/definition rows; it does not upload files or provide AI-generated cards.
 
 ### Session 2 — 2026-11-23 — driver: Copilot
 
@@ -60,7 +60,7 @@ Keep this up to date as you go — a few lines per work session is enough. It's 
 | 2026-11-19 | Asked whether the public website could be made impossible to copy. | Reviewed the prototype's visual system and discussed the limits of client-side code. | Made the visual identity more distinctive; noted that this does not prevent copying. |
 | 2026-11-23 | Existing browser-saved assignments could be missing Moodle links. | Added Moodle URLs to the demo data and renderer. | Existing saved assignments now receive a matching demo link when it is missing. |
 | 2026-11-23 | The Moodle URLs in the prototype are placeholders, not real course assignments. | Added an optional Moodle URL field for new assignments. | The prototype can store demo or user-entered links; real Moodle integration still needs course data and authorization. |
-| 2026-11-23 | No permanent public website link was confirmed. | Started and checked a local preview server. | A temporary local link is available at `http://localhost:8000/`; GitHub Pages must still be configured for a permanent public link. |
+| 2026-11-26 | No permanent public website link was confirmed. | Started and checked the local preview server, then opened it through a forwarded port link. | A temporary preview is available through the link at the top of this log; a permanent public deployment is still needed. |
 
 ## What a real version would need
 
